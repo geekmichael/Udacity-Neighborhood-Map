@@ -7,7 +7,13 @@
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
-      <div id="map"></div>
+  
+  <div class="location-box">
+    <ul data-bind="foreach: locations">
+      <li class="location"><a href="#" data-bind="text: name"></a></li>
+    </ul>
+  </div>
+  <div id="map"></div>
   <script src="http://maps.googleapis.com/maps/api/js?&key=AIzaSyBhi3opCkVZKEnPlhlmi5R2IjZci_t5vMI"></script>
   <script type="text/javascript" src="assets/js/knockout-min.js"></script>
   <script type="text/javascript" src="assets/js/app.js"></script>
