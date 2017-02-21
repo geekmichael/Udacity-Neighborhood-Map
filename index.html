@@ -7,10 +7,10 @@
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
-  
-  <div class="location-box">
+
+  <div class="control-panel">
     <ul data-bind="foreach: locations">
-      <li class="location"><a href="#" data-bind="text: name"></a></li>
+      <li class="location"><a href="#" data-bind="click: $parent.setMapCenter.bind(), text: name"></a></li>
     </ul>
   </div>
   <div id="map"></div>
