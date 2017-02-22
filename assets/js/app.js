@@ -123,12 +123,14 @@ var viewModel = {
 			  icon: this.markerIconDefault,
               infoWindowIndex: i
             });
-            //
+            
             this.markers.push(marker);
+			
 			// Click the marker to show a pop-up window with location information
             google.maps.event.addListener(marker, 'click', function(marker){
 				return function(){octopus.displayMarker(marker)};
 			}(marker));
+			
         }
         // Centering and fitting all markers on the screen
         map.fitBounds(this.latLngBounds);
@@ -164,10 +166,10 @@ viewModel.locations = function(){
 	for (i = 0; i < mLoc.length; i += 1) {
 		mLoc[i].enabled = true;
 		mLoc[i].ID = 'loc-' + i;
+		mLoc[i].locationClick = 'javascript:viewModel.locationClick(' + i + ')';
 		koArray.push(mLoc[i]);
 	}
 	return koArray();
-	console.log(koArray());
 	//return ko.observableArray(Model.locations);
 }
 viewModel.filteredLocations = ko.computed(function() {
@@ -185,7 +187,13 @@ viewModel.filteredLocations = ko.computed(function() {
 	})
 }, viewModel);
 
+viewModel.locationClick = function(i) {
+  google.maps.event.trigger(this.markers[i], 'click');
+  //map.getBounds();	
+};
+
 window.onload = function() {
     ko.applyBindings(viewModel);
     viewModel.init();
+	// Trigger a click event on each marker when the corresponding marker link is clicked
 };
