@@ -43,8 +43,11 @@ var Model = {
 };
 
 var viewModel = {
-	
+
+    locations: ko.observableArray(),
+    activeLocations: ko.observableArray(),
 	filter: ko.observable(""),
+    activeMarker: null,
 	markerIconDefault: Model.markerIcons.defaultIcon,
 	markerIconActive: Model.markerIcons.activeIcon,
 
@@ -77,19 +80,19 @@ var viewModel = {
           center: this.getMapCenter(),
           mapTypeId: this.getMapTypeId()
         };
-		
+
         this.map = new google.maps.Map(Model.mapDiv, mapOptions);
-		
+
 		// Default content in the infoWindow
         this.infobox = new google.maps.InfoWindow({
             content: "Loading ...."
         });
-		
+
         this.latLngBounds = new google.maps.LatLngBounds();
-		
+
         // An array to store all location markers
         this.markers = [];
-		
+
     },
     // Add the first marker on the map
     initMarker: function() {
@@ -102,13 +105,13 @@ var viewModel = {
     updateInfobox: function(marker) {
         this.markerInfo = Model.infoboxHTML.replace("%title%", marker.title);
     },
-
     // Iterate over locations array and create markers on the map
-    displayLocations: function(){
+    displayLocations: function() {
+
         //Set the map bounds and zoom level according to markers position
         var i, location, latLng, marker;
         var map = this.map;
-		var octopus = this;
+        var octopus = this;
         var locationLen = this.locations().length;
         // Use for instead of Array.forEach
         // Performance comparison http://jsperf.com/fast-array-foreach
@@ -120,80 +123,100 @@ var viewModel = {
               position: latLng,
               map: map,
               title: location.name,
-			  icon: this.markerIconDefault,
+              icon: this.markerIconDefault,
               infoWindowIndex: i
             });
-            
+
             this.markers.push(marker);
-			
-			// Click the marker to show a pop-up window with location information
+
+            // Click the marker to show a pop-up window with location information
             google.maps.event.addListener(marker, 'click', function(marker){
-				return function(){octopus.displayMarker(marker)};
-			}(marker));
-			
+                return function(){octopus.displayInfobox(marker)};
+            }(marker));
         }
         // Centering and fitting all markers on the screen
         map.fitBounds(this.latLngBounds);
     },
-	
-    displayMarker: function(marker) {
+
+    // Set the map on given markers in the array.
+    setMapOnAll: function(map, markers) {
+        var i;
+        if (!markers) markers = this.markers;
+        for (i = 0; i < markers.length; i += 1) {
+            markers[i].setMap(map);
+        }
+    },
+
+    // Remove the markers from the map, but keeps them in the array.
+    clearMarkers: function(){
+        setMapOnAll(null);
+    },
+
+    // Show all markers in the array
+    showMarkers: function() {
+        setMaponAll(this.map);
+    },
+
+    displayInfobox: function(marker) {
         this.updateInfobox(marker);
         this.infobox.close();
-        // Reset all markers with default icons
-        this.resetMarkers();
+
+        if (this.activeMarker) {
+            // Reset the last activated marker's icon
+            this.activeMarker.setIcon(this.markerIconDefault);
+        }
+        // Set current clicked marker as active
+        this.activeMarker = marker;
+
+        // Load location information
         this.infobox.setContent(this.markerInfo);
         this.infobox.open(this.map, marker);
-		// Change the pin icon for current marker
+
+		// Change the pin icon for active marker
 		marker.setIcon(this.markerIconActive);
-		
+
 		// Set the current marker as the map center
         this.map.setCenter(marker.getPosition());
-    },
-	
-	// Reset all markers with default icons
-	resetMarkers: function() {
-        var i, markerLen = this.markers.length;
-        for (i = 0; i < markerLen; i += 1) {
-            this.markers[i].setIcon(this.markerIconDefault);
-        }
     }
 };
 
-viewModel.locations = function(){
+viewModel.mappingLocations = function(){
 	var i;
-	var koArray = ko.observableArray();
+	var locs = [];
 	var mLoc = Model.locations;
 	for (i = 0; i < mLoc.length; i += 1) {
-		mLoc[i].enabled = true;
-		mLoc[i].ID = 'loc-' + i;
+		mLoc[i].ID = i;
 		mLoc[i].locationClick = 'javascript:viewModel.locationClick(' + i + ')';
-		koArray.push(mLoc[i]);
+		locs.push(mLoc[i]);
 	}
-	return koArray();
+	return locs;
 	//return ko.observableArray(Model.locations);
-}
+};
+
 viewModel.filteredLocations = ko.computed(function() {
-	var self = this;
+    this.locations(this.mappingLocations());
+    var self = this;
 	var filter = self.filter().toLowerCase();
 	return ko.utils.arrayFilter(self.locations(), function(location){
 		if (location.name.toLowerCase().indexOf(filter) >= 0) {
+            // The Array of markers will not be ready before locations are marked
+            if (self.markers) {
+                // Only display corresponding markers
+                self.markers[location.ID].setVisible(true);
+            }
 			return location;
-			//return location.enabled(true);
 		}else{
-			//setAllMap();
-			//return location.enabled(false);
-		}
-		//return location.name.toLowerCase().indexOf(filter) !== -1;
+            self.markers[location.ID].setVisible(false);
+        }
 	})
 }, viewModel);
 
 viewModel.locationClick = function(i) {
-  google.maps.event.trigger(this.markers[i], 'click');
-  //map.getBounds();	
+    // Trigger a click event on each marker when the corresponding marker link is clicked
+    google.maps.event.trigger(this.markers[i], 'click');
 };
 
 window.onload = function() {
     ko.applyBindings(viewModel);
     viewModel.init();
-	// Trigger a click event on each marker when the corresponding marker link is clicked
 };
