@@ -34,12 +34,19 @@ var Model = {
       hybrid: displays a mixture of normal and satellite views
       terrain: displays a physical map based on terrain information.
     */
-    mapTypeId: 'terrain'
+    mapTypeId: 'terrain',
+	//The default icon of a Google maps marker
+	markerIcons: {
+		defaultIcon: 'assets/images/map-pin-default.png',
+		activeIcon: 'assets/images/map-pin-active.png'
+	}
 };
 
 var viewModel = {
 
     locations: ko.observableArray(Model.locations),
+	markerIconDefault: Model.markerIcons.defaultIcon,
+	markerIconActive: Model.markerIcons.activeIcon,
 
     // Get the pre-defined coordinate as map centre
     getMapCenter: function() {
@@ -48,7 +55,6 @@ var viewModel = {
     },
     // Update map centre with new coordinate
     setMapCenter: function(lat, lng) {
-        console.log("Clicked");
         Model.mapCenter([{lat, lng}]);
     },
 
@@ -64,19 +70,26 @@ var viewModel = {
     },
     // Initialise the Google Map with pre-defined centre
     initMap: function(){
+		//Google Map settings
         var mapOptions = {
           zoom: 10,
           disableDefaultUI: true,
           center: this.getMapCenter(),
           mapTypeId: this.getMapTypeId()
         };
+		
         this.map = new google.maps.Map(Model.mapDiv, mapOptions);
+		
+		// Default content in the infoWindow
         this.infobox = new google.maps.InfoWindow({
             content: "Loading ...."
         });
+		
         this.latLngBounds = new google.maps.LatLngBounds();
+		
         // An array to store all location markers
         this.markers = [];
+		
     },
     // Add the first marker on the map
     initMarker: function() {
@@ -95,6 +108,7 @@ var viewModel = {
         //Set the map bounds and zoom level according to markers position
         var i, location, latLng, marker;
         var map = this.map;
+		var octopus = this;
         var locationLen = this.locations().length;
         // Use for instead of Array.forEach
         // Performance comparison http://jsperf.com/fast-array-foreach
@@ -106,53 +120,42 @@ var viewModel = {
               position: latLng,
               map: map,
               title: location.name,
+			  icon: this.markerIconDefault,
               infoWindowIndex: i
             });
-            //marker.setMap(this.map);
+            //
             this.markers.push(marker);
-
-            google.maps.event.addListener(marker, 'click', function() {
-                return function() {
-                    viewModel.displayMarker(marker, this.markerInfo);
-                }
-            }(i));
+			// Click the marker to show a pop-up window with location information
+            google.maps.event.addListener(marker, 'click', function(marker){
+				return function(){octopus.displayMarker(marker)};
+			}(marker));
         }
         // Centering and fitting all markers on the screen
         map.fitBounds(this.latLngBounds);
     },
-    displayMarker: function(marker, markerInfo) {
+	
+    displayMarker: function(marker) {
         this.updateInfobox(marker);
         this.infobox.close();
-        console.log(this.markerInfo);
         // Reset all markers with default icons
         this.resetMarkers();
         this.infobox.setContent(this.markerInfo);
         this.infobox.open(this.map, marker);
-        //this.map.setCenter(this.getPosition());
+		// Change the pin icon for current marker
+		marker.setIcon(this.markerIconActive);
+		
+		// Set the current marker as the map center
+        this.map.setCenter(marker.getPosition());
     },
-    resetMarkers: function() {
+	
+	// Reset all markers with default icons
+	resetMarkers: function() {
         var i, markerLen = this.markers.length;
         for (i = 0; i < markerLen; i += 1) {
-            this.markers[i].setIcon('assets/images/map-pin-default.png');
+            this.markers[i].setIcon(this.markerIconDefault);
         }
     }
 };
-// ko.bindingHandlers.googlemap = {
-//     init: function(element, valueAccessor) {
-//       var value = valueAccessor(),
-//           myLatLng = new google.maps.LatLng(value.latitude, value.longitude),
-//           mapOptions = {
-//             zoom: 4,
-//             center: myLatLng,
-//             mapTypeId: 'terrain'
-//           },
-//           map = new google.maps.Map(element, mapOptions),
-//           marker = new google.maps.Marker({
-//             position: myLatLng,
-//             map: map
-//           });
-//     }
-// };
 
 window.onload = function() {
     ko.applyBindings(viewModel);
