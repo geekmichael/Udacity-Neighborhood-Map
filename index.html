@@ -11,7 +11,7 @@
   <div class="control-panel">
 	<input type="text" placeholder="Type something to filter ..." data-bind="value: filter, valueUpdate: 'afterkeydown'">
     <ul data-bind="foreach: filteredLocations">
-      <li class="location"><a href="#" data-bind="click: $parent.setMapCenter.bind(), text: name"></a></li>
+      <li class="location"><a href="#" data-bind="attr: {id: ID}, text: name"></a></li>
     </ul>
   </div>
   <div id="map"></div>
