@@ -9,12 +9,13 @@
 <body>
 
   <div class="control-panel">
-    <ul data-bind="foreach: locations">
+	<input type="text" placeholder="Type something to filter ..." data-bind="value: filter, valueUpdate: 'afterkeydown'">
+    <ul data-bind="foreach: filteredLocations">
       <li class="location"><a href="#" data-bind="click: $parent.setMapCenter.bind(), text: name"></a></li>
     </ul>
   </div>
   <div id="map"></div>
-  <script src="http://maps.googleapis.com/maps/api/js?&key=AIzaSyBhi3opCkVZKEnPlhlmi5R2IjZci_t5vMI"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?&key=AIzaSyBhi3opCkVZKEnPlhlmi5R2IjZci_t5vMI"></script>
   <script type="text/javascript" src="assets/js/knockout-min.js"></script>
   <script type="text/javascript" src="assets/js/app.js"></script>
 </body>

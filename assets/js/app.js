@@ -43,8 +43,9 @@ var Model = {
 };
 
 var viewModel = {
-
+	
     locations: ko.observableArray(Model.locations),
+	filter: ko.observable(""),
 	markerIconDefault: Model.markerIcons.defaultIcon,
 	markerIconActive: Model.markerIcons.activeIcon,
 
@@ -156,6 +157,14 @@ var viewModel = {
         }
     }
 };
+
+viewModel.filteredLocations = ko.computed(function() {
+		var self = this;
+		var filter = self.filter().toLowerCase();
+		return ko.utils.arrayFilter(self.locations(), function(location){
+			return location.name.toLowerCase().indexOf(filter) !== -1;
+		})
+}, viewModel);
 
 window.onload = function() {
     ko.applyBindings(viewModel);
