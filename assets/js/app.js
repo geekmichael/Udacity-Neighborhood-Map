@@ -92,7 +92,6 @@ var viewModel = {
 
         // An array to store all location markers
         this.markers = [];
-
     },
     // Add the first marker on the map
     initMarker: function() {
@@ -136,6 +135,13 @@ var viewModel = {
         }
         // Centering and fitting all markers on the screen
         map.fitBounds(this.latLngBounds);
+
+		// Centering bounds when browser window is resized. Make the map responsive
+		google.maps.event.addDomListener(window, 'resize', function(latLngBounds) {
+			return function(){
+				map.fitBounds(latLngBounds);
+			}
+		}(this.latLngBounds));
     },
 
     // Set the map on given markers in the array.
@@ -206,6 +212,9 @@ viewModel.filteredLocations = ko.computed(function() {
             }
 			return location;
 		}else{
+			// Close active infoWindow
+			self.infobox.close();
+			// Hide non-corresponding marker
             self.markers[location.ID].setVisible(false);
         }
 	})
