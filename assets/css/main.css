@@ -1,16 +1,69 @@
+* {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
 html, body{
   height: 100%;
   margin: 0;
   padding: 0;
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height: 100%;
 }
 #map{
   width: 100%;
   height: 100%;
 }
 .control-panel{
-    width: 300px;
+    width: 260px;
     position: absolute;
     z-index: 1000;
     top: 10px;
-    padding: 0 10px;
+    padding: 6px;
+    background: white;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,0.4);
+    border-radius: 4px;
+    color: #868686;
+}
+.filter-box{
+    height: 35px;
+    font-size: 16px;
+    border: 0;
+    border-bottom: 1px solid #c8c8c8;
+    color: #868686;
+    width: 100%;
+    outline: none;
+    padding: 5px 5px 5px 10px;
+    margin: 0;
+}
+.location {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+}
+.location li {
+    margin: 1px 0;
+    padding: 10px;
+    background: #eee;
+}
+.location li:hover{
+    background: #ddd;
+}
+.location-link {
+    text-decoration: none;
+    color: #666;
+}
+.location-link:hover{
+    color: #c00;
+}
+.toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 6px;
+    font-size: 2.5em;
+    cursor: pointer;
 }

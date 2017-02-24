@@ -12,22 +12,42 @@ var Model = {
     locations: [
         {
             name: "Campuhan Ridge Walk",
-            lat: -8.503617,
-            lng: 115.254704
+            lat: -8.503543,
+            lng: 115.25471,
+            review: "https://www.tripadvisor.com/Attraction_Review-g297701-d2662551-Reviews-Campuhan_Ridge_Walk-Ubud_Bali.html",
+            img: "assets/images/locations/campuhan-ridge-walk.jpg"
         },
         {
             name: "Taco Casa",
-            lat: -8.521202,
-            lng: 115.262936
+            lat: -8.521212,
+            lng: 115.26292,
+            review: "https://www.tripadvisor.com/Restaurant_Review-g297701-d2005133-Reviews-Taco_Casa-Ubud_Bali.html",
+            img: "assets/images/locations/taco-casa.jpg",
+        },
+        {
+            name: "Sacred Monkey Forest Sanctuary",
+            lat: -8.518013,
+            lng: 115.25945,
+            review: "https://www.tripadvisor.com/Attraction_Review-g297701-d378969-Reviews-Sacred_Monkey_Forest_Sanctuary-Ubud_Bali.html",
+            img: "assets/images/locations/monkey-forest.jpg"
+        },
+        {
+            name: "Tegalalang Rice Terrace",
+            lat: -8.432813,
+            lng: 115.27882,
+            review: "https://www.tripadvisor.com/Attraction_Review-g297701-d1515658-Reviews-Tegalalang_Rice_Terrace-Ubud_Bali.html",
+            img: "assets/images/locations/rice-terraces-of-tegalalang.jpg"
         },
         {
             name: "Bebek Bengil - Dirty Duck Diner",
-            lat: -8.517820,
-            lng: 115.263656
+            lat: -8.523056,
+            lng: 115.27268,
+            review: "https://www.tripadvisor.com/Restaurant_Review-g297701-d1953278-Reviews-Bebek_Tepi_Sawah-Ubud_Bali.html",
+            img: "assets/images/locations/bebek-bengil-dirty-duck-diner.jpg"
         }
     ],
 
-    infoboxHTML: '<div class="marker-info"><h2 class="marker-title">%title%</h2><div class="marker-content">Loading ...</div></div>',
+    infoboxHTML: '<div class="marker-info"><h2 class="marker-title">%title%</h2><div class="marker-content"><img src="%image%" class="location-photo" width="200"><p><a href="%reviewurl%" target="_blank" class="review-link">TripAdvisor Review</a></p></div></div>',
     /* Set Google map type by following https://developers.google.com/maps/documentation/javascript/maptypes
       roadmap: displays the default road map view. This is the default map type.
       satellite: displays Google Earth satellite images
@@ -45,11 +65,17 @@ var Model = {
 var viewModel = {
 
     locations: ko.observableArray(),
-    activeLocations: ko.observableArray(),
 	filter: ko.observable(""),
     activeMarker: null,
 	markerIconDefault: Model.markerIcons.defaultIcon,
 	markerIconActive: Model.markerIcons.activeIcon,
+
+    // Flag for the visibility of location list
+    listVisible: ko.observable(true),
+    // Unicode arrows
+    // &#8689 North west arrow to corner -- click to hide the list
+    // &#8690 South east arrow to corner -- click to show the list
+    toggleText: ko.observable("⇱"),
 
     // Get the pre-defined coordinate as map centre
     getMapCenter: function() {
@@ -101,8 +127,11 @@ var viewModel = {
         });
     },
 
-    updateInfobox: function(marker) {
-        this.markerInfo = Model.infoboxHTML.replace("%title%", marker.title);
+    updateInfobox: function(location) {
+        var locationInfo = '';
+        locationInfo = Model.infoboxHTML.replace("%title%", location.name);
+        locationInfo = locationInfo.replace("%reviewurl%", location.review);
+        this.markerInfo = locationInfo.replace("%image%", location.img);
     },
     // Iterate over locations array and create markers on the map
     displayLocations: function() {
@@ -129,9 +158,17 @@ var viewModel = {
             this.markers.push(marker);
 
             // Click the marker to show a pop-up window with location information
-            google.maps.event.addListener(marker, 'click', function(marker){
-                return function(){octopus.displayInfobox(marker)};
-            }(marker));
+            google.maps.event.addListener(marker, 'click', function(marker, location){
+                return function(){octopus.displayInfobox(marker, location)};
+            }(marker, location));
+
+            // Reset marker icon to the default when infoWindow is closed.
+            google.maps.event.addDomListener(this.infobox, 'closeclick', function(latLngBounds, marker, markerIconDefault) {
+                return function(){
+                    marker.setIcon(markerIconDefault)
+                    map.fitBounds(latLngBounds);
+                }
+            }(this.latLngBounds, marker, this.markerIconDefault));
         }
         // Centering and fitting all markers on the screen
         map.fitBounds(this.latLngBounds);
@@ -142,6 +179,7 @@ var viewModel = {
 				map.fitBounds(latLngBounds);
 			}
 		}(this.latLngBounds));
+
     },
 
     // Set the map on given markers in the array.
@@ -163,8 +201,8 @@ var viewModel = {
         setMaponAll(this.map);
     },
 
-    displayInfobox: function(marker) {
-        this.updateInfobox(marker);
+    displayInfobox: function(marker, location) {
+        this.updateInfobox(location);
         this.infobox.close();
 
         if (this.activeMarker) {
@@ -224,6 +262,19 @@ viewModel.locationClick = function(i) {
     // Trigger a click event on each marker when the corresponding marker link is clicked
     google.maps.event.trigger(this.markers[i], 'click');
 };
+
+viewModel.listToggle = function() {
+    this.listVisible(!this.listVisible());
+    // Unicode arrows
+    // &#8689 North west arrow to corner -- click to hide the list
+    // &#8690 South east arrow to corner -- click to show the list
+    if (this.listVisible()) {
+        this.toggleText("⇱");
+    }else{
+        this.toggleText("⇲");
+    }
+
+}
 
 window.onload = function() {
     ko.applyBindings(viewModel);
