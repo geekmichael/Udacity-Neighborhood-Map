@@ -11,43 +11,42 @@ var Model = {
     // All locations for visiting
     locations: [
         {
-            name: "Campuhan Ridge Walk",
+            name: 'Campuhan Ridge Walk',
             lat: -8.503543,
             lng: 115.25471,
-            review: "https://www.tripadvisor.com/Attraction_Review-g297701-d2662551-Reviews-Campuhan_Ridge_Walk-Ubud_Bali.html",
-            img: "assets/images/locations/campuhan-ridge-walk.jpg"
+            review: 'https://www.tripadvisor.com/Attraction_Review-g297701-d2662551-Reviews-Campuhan_Ridge_Walk-Ubud_Bali.html',
+            img: 'assets/images/locations/campuhan-ridge-walk.jpg'
         },
         {
-            name: "Taco Casa",
+            name: 'Taco Casa',
             lat: -8.521212,
             lng: 115.26292,
-            review: "https://www.tripadvisor.com/Restaurant_Review-g297701-d2005133-Reviews-Taco_Casa-Ubud_Bali.html",
-            img: "assets/images/locations/taco-casa.jpg",
+            review: 'https://www.tripadvisor.com/Restaurant_Review-g297701-d2005133-Reviews-Taco_Casa-Ubud_Bali.html',
+            img: 'assets/images/locations/taco-casa.jpg'
         },
         {
-            name: "Sacred Monkey Forest Sanctuary",
+            name: 'Sacred Monkey Forest Sanctuary',
             lat: -8.518013,
             lng: 115.25945,
-            review: "https://www.tripadvisor.com/Attraction_Review-g297701-d378969-Reviews-Sacred_Monkey_Forest_Sanctuary-Ubud_Bali.html",
-            img: "assets/images/locations/monkey-forest.jpg"
+            review: 'https://www.tripadvisor.com/Attraction_Review-g297701-d378969-Reviews-Sacred_Monkey_Forest_Sanctuary-Ubud_Bali.html',
+            img: 'assets/images/locations/monkey-forest.jpg'
         },
         {
-            name: "Tegalalang Rice Terrace",
+            name: 'Tegalalang Rice Terrace',
             lat: -8.432813,
             lng: 115.27882,
-            review: "https://www.tripadvisor.com/Attraction_Review-g297701-d1515658-Reviews-Tegalalang_Rice_Terrace-Ubud_Bali.html",
-            img: "assets/images/locations/rice-terraces-of-tegalalang.jpg"
+            review: 'https://www.tripadvisor.com/Attraction_Review-g297701-d1515658-Reviews-Tegalalang_Rice_Terrace-Ubud_Bali.html',
+            img: 'assets/images/locations/rice-terraces-of-tegalalang.jpg'
         },
         {
-            name: "Bebek Bengil - Dirty Duck Diner",
+            name: 'Bebek Bengil - Dirty Duck Diner',
             lat: -8.523056,
             lng: 115.27268,
-            review: "https://www.tripadvisor.com/Restaurant_Review-g297701-d1953278-Reviews-Bebek_Tepi_Sawah-Ubud_Bali.html",
-            img: "assets/images/locations/bebek-bengil-dirty-duck-diner.jpg"
+            review: 'https://www.tripadvisor.com/Restaurant_Review-g297701-d1953278-Reviews-Bebek_Tepi_Sawah-Ubud_Bali.html',
+            img: 'assets/images/locations/bebek-bengil-dirty-duck-diner.jpg'
         }
     ],
 
-    infoboxHTML: '<div class="marker-info"><h2 class="marker-title">%title%</h2><div class="marker-content"><img src="%image%" class="location-photo" width="200"><p><a href="%reviewurl%" target="_blank" class="review-link">TripAdvisor Review</a></p></div></div>',
     /* Set Google map type by following https://developers.google.com/maps/documentation/javascript/maptypes
       roadmap: displays the default road map view. This is the default map type.
       satellite: displays Google Earth satellite images
@@ -65,7 +64,7 @@ var Model = {
 var viewModel = {
 
     locations: ko.observableArray(),
-	filter: ko.observable(""),
+	filter: ko.observable(''),
     activeMarker: null,
 	markerIconDefault: Model.markerIcons.defaultIcon,
 	markerIconActive: Model.markerIcons.activeIcon,
@@ -75,7 +74,7 @@ var viewModel = {
     // Unicode arrows
     // &#8689 North west arrow to corner -- click to hide the list
     // &#8690 South east arrow to corner -- click to show the list
-    toggleText: ko.observable("⇱"),
+    toggleText: ko.observable('⇱'),
 
     // Get the pre-defined coordinate as map centre
     getMapCenter: function() {
@@ -91,12 +90,10 @@ var viewModel = {
         return Model.mapTypeId;
     },
 
-    init: function(){
-        this.currentLocation = ko.observable(this.locations()[0]);
-        this.initMap();
-        //this.initMarker();
-        this.displayLocations();
-    },
+    // init: function(){
+    //     this.initMap();
+    //     this.displayLocations();
+    // },
     // Initialise the Google Map with pre-defined centre
     initMap: function(){
 		//Google Map settings
@@ -109,9 +106,11 @@ var viewModel = {
 
         this.map = new google.maps.Map(Model.mapDiv, mapOptions);
 
+        //this.placesService = new google.maps.places.PlacesService(this.map);
+
 		// Default content in the infoWindow
         this.infobox = new google.maps.InfoWindow({
-            content: "Loading ...."
+            content: 'Loading ....'
         });
 
         this.latLngBounds = new google.maps.LatLngBounds();
@@ -128,22 +127,29 @@ var viewModel = {
     },
 
     updateInfobox: function(location) {
-        var locationInfo = '';
-        locationInfo = Model.infoboxHTML.replace("%title%", location.name);
-        locationInfo = locationInfo.replace("%reviewurl%", location.review);
-        this.markerInfo = locationInfo.replace("%image%", location.img);
+        var formattedName, formattedIMG, ormattedReviewUrl;
+        formattedName = '<h2 class="location-title">' + location.name + '</h2>';
+        formattedIMG = '<div class="info-img"><img src="' + location.img + '" class="location-photo"></div>';
+        formattedReviewUrl = '<div class="info-detail"><h3 class="nearby-title">Nearby</h3></div>';
+
+        location.markerInfo = '<div class="marker-info">' + formattedName +
+            '<div class="marker-content">' + formattedIMG + formattedReviewUrl +
+            '</div></div>';
     },
     // Iterate over locations array and create markers on the map
     displayLocations: function() {
 
-        //Set the map bounds and zoom level according to markers position
+        // Set the map bounds and zoom level according to markers position
         var i, location, latLng, marker;
         var map = this.map;
-        var octopus = this;
+
+        // Avoid any problems with this being redefined to mean something else in event handlers or Ajax request callbacks.
+        var self = this;
         var locationLen = this.locations().length;
+
         // Use for instead of Array.forEach
         // Performance comparison http://jsperf.com/fast-array-foreach
-        for ( i = 0; i < locationLen; i += 1){
+        for ( i = 0; i < locationLen; i ++){
             location = this.locations()[i];
             latLng = new google.maps.LatLng(location.lat, location.lng);
             this.latLngBounds.extend(latLng);
@@ -159,7 +165,7 @@ var viewModel = {
 
             // Click the marker to show a pop-up window with location information
             google.maps.event.addListener(marker, 'click', function(marker, location){
-                return function(){octopus.displayInfobox(marker, location)};
+                return function(){self.displayInfobox(marker, location)};
             }(marker, location));
 
             // Reset marker icon to the default when infoWindow is closed.
@@ -173,13 +179,15 @@ var viewModel = {
         // Centering and fitting all markers on the screen
         map.fitBounds(this.latLngBounds);
 
-		// Centering bounds when browser window is resized. Make the map responsive
-		google.maps.event.addDomListener(window, 'resize', function(latLngBounds) {
-			return function(){
-				map.fitBounds(latLngBounds);
-			}
-		}(this.latLngBounds));
+        // Reset markers while clicked on the map beside of markers
+        google.maps.event.addListener(this.map, 'click', function(e){
+            map.fitBounds(self.latLngBounds);
+        });
 
+		// Centering bounds when browser window is resized. Make the map responsive
+		google.maps.event.addDomListener(window, 'resize', function() {
+			map.fitBounds(self.latLngBounds);
+		});
     },
 
     // Set the map on given markers in the array.
@@ -193,16 +201,15 @@ var viewModel = {
 
     // Remove the markers from the map, but keeps them in the array.
     clearMarkers: function(){
-        setMapOnAll(null);
+        this.setMapOnAll(null);
     },
 
     // Show all markers in the array
     showMarkers: function() {
-        setMaponAll(this.map);
+        this.setMaponAll(this.map);
     },
 
     displayInfobox: function(marker, location) {
-        this.updateInfobox(location);
         this.infobox.close();
 
         if (this.activeMarker) {
@@ -212,8 +219,9 @@ var viewModel = {
         // Set current clicked marker as active
         this.activeMarker = marker;
 
+        this.updateInfobox(location);
         // Load location information
-        this.infobox.setContent(this.markerInfo);
+        this.infobox.setContent(location.markerInfo);
         this.infobox.open(this.map, marker);
 
 		// Change the pin icon for active marker
@@ -221,6 +229,46 @@ var viewModel = {
 
 		// Set the current marker as the map center
         this.map.setCenter(marker.getPosition());
+
+        if (location.nearbyList) {
+            $('.info-detail').append(location.nearbyList);
+        }else{
+            // Getting nearby wiki information and then saving to location.nearbyList
+            // https://www.mediawiki.org/wiki/API:Showing_nearby_wiki_information
+            this.wikiNearby(location);
+        }
+    },
+
+    wikiNearby: function(location){
+        var wikiURL = 'https://en.wikipedia.org/w/api.php';
+        $.ajax({
+            url: wikiURL,
+            data: {
+                'action': 'query',
+                'list': 'geosearch',
+                'gscoord': location.lat + '|' + location.lng,
+                'gsradius': 5000,
+                'gslimit': 5,
+                'format': 'json'
+            },
+            type: 'GET',
+            dataType: 'jsonp',
+        }).done(function(data){
+            //console.log(data);
+            var i, nearbyList = '';
+            var geosearch = data.query.geosearch;
+            var nearbyLen = geosearch.length;
+            for (i = 0; i < nearbyLen; i++) {
+                nearbyList += '<li>'+ geosearch[i].title + '<span class="dist">' + geosearch[i].dist + 'm</span></li>';
+            }
+            nearbyList = '<ul class="nearbyList">'+nearbyList+'</ul>';
+            location.nearbyList = nearbyList;
+            $('.info-detail').append(location.nearbyList);
+        }).fail(function(){
+            var err = 'Load wikimedia nearby data failed!';
+            console.log(err);
+            $('.info-detail').append(err);
+        });
     }
 };
 
@@ -229,8 +277,8 @@ viewModel.mappingLocations = function(){
 	var locs = [];
 	var mLoc = Model.locations;
 	for (i = 0; i < mLoc.length; i += 1) {
-		mLoc[i].ID = i;
-		mLoc[i].locationClick = 'javascript:viewModel.locationClick(' + i + ')';
+        mLoc[i].ID = i;
+		//mLoc[i].locationClick = 'javascript:viewModel.locationClick(' + i + ')';
 		locs.push(mLoc[i]);
 	}
 	return locs;
@@ -238,10 +286,11 @@ viewModel.mappingLocations = function(){
 };
 
 viewModel.filteredLocations = ko.computed(function() {
-    this.locations(this.mappingLocations());
+    // Avoid any problems with this being redefined to mean something else in event handlers or Ajax request callbacks.
     var self = this;
-	var filter = self.filter().toLowerCase();
-	return ko.utils.arrayFilter(self.locations(), function(location){
+    this.locations(this.mappingLocations());
+	var filter = this.filter().toLowerCase();
+	return ko.utils.arrayFilter(this.locations(), function(location){
 		if (location.name.toLowerCase().indexOf(filter) >= 0) {
             // The Array of markers will not be ready before locations are marked
             if (self.markers) {
@@ -258,9 +307,9 @@ viewModel.filteredLocations = ko.computed(function() {
 	})
 }, viewModel);
 
-viewModel.locationClick = function(i) {
+viewModel.locationClick = function(filteredLocation) {
     // Trigger a click event on each marker when the corresponding marker link is clicked
-    google.maps.event.trigger(this.markers[i], 'click');
+    google.maps.event.trigger(viewModel.markers[filteredLocation.ID], 'click');
 };
 
 viewModel.listToggle = function() {
@@ -269,14 +318,22 @@ viewModel.listToggle = function() {
     // &#8689 North west arrow to corner -- click to hide the list
     // &#8690 South east arrow to corner -- click to show the list
     if (this.listVisible()) {
-        this.toggleText("⇱");
+        this.toggleText('⇱');
     }else{
-        this.toggleText("⇲");
+        this.toggleText('⇲');
     }
 
 }
 
-window.onload = function() {
-    ko.applyBindings(viewModel);
-    viewModel.init();
-};
+
+init = function() {
+    viewModel.initMap();
+    //viewModel.initMarker();
+    viewModel.displayLocations();
+}
+
+mapError = function() {
+    console.log('Error on initialising Google Map');
+}
+
+ko.applyBindings(viewModel);

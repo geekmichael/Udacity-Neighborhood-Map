@@ -7,17 +7,24 @@
   <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
-
-  <div class="control-panel">
-	<input type="text" class="filter-box" placeholder="Key word ..." data-bind="value: filter, valueUpdate: 'afterkeydown'">
+<aside class="control-panel">
+	<input type="text" class="filter-box" placeholder="Search ..." data-bind="value: filter, valueUpdate: 'afterkeydown'">
     <ul class="location" data-bind="foreach: filteredLocations, visible: listVisible">
-      <li><a class="location-link" data-bind="attr: {id: ID, href: locationClick}, text: name"></a></li>
+      <li>
+          <a class="location-link" data-bind="attr: {id: ID}, click: $parent.locationClick, text: name"></a>
+      </li>
     </ul>
     <div class="toggle" data-bind="click: listToggle, text: toggleText">&#8689;</div>
-  </div>
-  <div id="map"></div>
-  <script src="https://maps.googleapis.com/maps/api/js?&key=AIzaSyBhi3opCkVZKEnPlhlmi5R2IjZci_t5vMI"></script>
-  <script type="text/javascript" src="assets/js/knockout-min.js"></script>
-  <script type="text/javascript" src="assets/js/app.js"></script>
+</aside>
+<section class="map-container">
+    <div id="map"></div>
+</section>
+<footer class="docs-footer">
+    <p>Neighborhood Map, A front-end project of Udacity Nanodegree. Author: <a href="https://github.com/geekmichael">Michael Zhang</a></p>
+</footer>
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/knockout-min.js"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?&key=AIzaSyBhi3opCkVZKEnPlhlmi5R2IjZci_t5vMI&callback=init" onerror="mapError"></script>
+<script src="assets/js/app.js"></script>
 </body>
 </html>
