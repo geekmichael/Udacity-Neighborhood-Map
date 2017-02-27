@@ -31,10 +31,10 @@
             <img data-bind="attr: {src: activeLocationImg}" src="" class="location-photo">
         </div>
         <div class="info-detail">
-            <h3 class="nearby-title">Nearby<span data-bind="visible: nearbyLoadingVisible">Loading ...</span></h3>
+            <h3 class="nearby-title">Nearby <span data-bind="visible: nearbyLoadingVisible">is loading ...</span></h3>
         </div>
         <ul class="nearbyList" data-bind="foreach: activeNearbyList">
-            <li data-bind="text: activeNearbyListItem"></li>
+            <li data-bind="html: activeNearbyListItem"></li>
         </ul>
     </div>
 </div>

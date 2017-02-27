@@ -110,9 +110,9 @@ a:hover{
     font-size: 11px;
 }
 .dist {
-    background: #eee;
+    display: inline-block;
+    width: 60px;
     padding: 2px;
-    margin-left: 5px;
     font-size: 10px;
 }
 .dist:before{

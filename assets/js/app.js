@@ -140,6 +140,8 @@ var viewModel = {
         if (location.nearbyList.length) {
             this.activeNearbyList(location.nearbyList);
         }else{
+            // Show the 'Loading' text and then retrive nearby from Wikimedia
+            this.nearbyLoadingVisible(true);
             this.wikiNearbyRequest(location);
         }
         this.activeLocationTitle(location.name);
@@ -273,9 +275,10 @@ var viewModel = {
                 var geosearch = data.query.geosearch;
                 var nearbyLen = geosearch.length;
                 for (i = 0; i < nearbyLen; i++) {
-                    location.nearbyList.push({activeNearbyListItem: geosearch[i].title + '<span class="dist">' + geosearch[i].dist + 'm</span>'});
+                    location.nearbyList.push({activeNearbyListItem: '<span class="dist">' + geosearch[i].dist + 'm</span>' + geosearch[i].title });
                 }
                 self.activeNearbyList(location.nearbyList);
+                self.nearbyLoadingVisible(false);
                 self.displayInfobox(self.activeMarker, location);
             },error: function(){
                 self.activeNearbyList(errorMsg);
