@@ -68,13 +68,23 @@ var viewModel = {
     activeMarker: null,
 	markerIconDefault: Model.markerIcons.defaultIcon,
 	markerIconActive: Model.markerIcons.activeIcon,
+    // Error message while initialising Google Map failed
+    mapErrInfo: ko.observable(''),
 
     // Flag for the visibility of location list
     listVisible: ko.observable(true),
+
+    // Flag for the visibility of loading nearby list
+    nearbyLoadingVisible: ko.observable(true),
     // Unicode arrows
     // &#8689 North west arrow to corner -- click to hide the list
     // &#8690 South east arrow to corner -- click to show the list
     toggleText: ko.observable('⇱'),
+
+    activeNearbyList: ko.observableArray(),
+
+    activeLocationTitle: ko.observable(''),
+    activeLocationImg: ko.observable(''),
 
     // Get the pre-defined coordinate as map centre
     getMapCenter: function() {
@@ -99,18 +109,16 @@ var viewModel = {
 		//Google Map settings
         var mapOptions = {
           zoom: 10,
-          disableDefaultUI: true,
+          mapTypeControl: true,
           center: this.getMapCenter(),
           mapTypeId: this.getMapTypeId()
         };
 
         this.map = new google.maps.Map(Model.mapDiv, mapOptions);
 
-        //this.placesService = new google.maps.places.PlacesService(this.map);
-
 		// Default content in the infoWindow
         this.infobox = new google.maps.InfoWindow({
-            content: 'Loading ....'
+            content: ''
         });
 
         this.latLngBounds = new google.maps.LatLngBounds();
@@ -127,14 +135,17 @@ var viewModel = {
     },
 
     updateInfobox: function(location) {
-        var formattedName, formattedIMG, ormattedReviewUrl;
-        formattedName = '<h2 class="location-title">' + location.name + '</h2>';
-        formattedIMG = '<div class="info-img"><img src="' + location.img + '" class="location-photo"></div>';
-        formattedReviewUrl = '<div class="info-detail"><h3 class="nearby-title">Nearby</h3></div>';
-
-        location.markerInfo = '<div class="marker-info">' + formattedName +
-            '<div class="marker-content">' + formattedIMG + formattedReviewUrl +
-            '</div></div>';
+        // Check if Wiki nearby list has been retrived and stored locally
+        // Increase performance
+        if (location.nearbyList.length) {
+            this.activeNearbyList(location.nearbyList);
+        }else{
+            this.wikiNearbyRequest(location);
+        }
+        this.activeLocationTitle(location.name);
+        this.activeLocationImg(location.img);
+        this.nearbyLoadingVisible(false);
+        this.markerInfo = $('#infoBox').html();
     },
     // Iterate over locations array and create markers on the map
     displayLocations: function() {
@@ -165,13 +176,15 @@ var viewModel = {
 
             // Click the marker to show a pop-up window with location information
             google.maps.event.addListener(marker, 'click', function(marker, location){
-                return function(){self.displayInfobox(marker, location)};
+                return function(){
+                    self.displayInfobox(marker, location);
+                };
             }(marker, location));
 
             // Reset marker icon to the default when infoWindow is closed.
             google.maps.event.addDomListener(this.infobox, 'closeclick', function(latLngBounds, marker, markerIconDefault) {
                 return function(){
-                    marker.setIcon(markerIconDefault)
+                    marker.setIcon(markerIconDefault);
                     map.fitBounds(latLngBounds);
                 }
             }(this.latLngBounds, marker, this.markerIconDefault));
@@ -221,7 +234,7 @@ var viewModel = {
 
         this.updateInfobox(location);
         // Load location information
-        this.infobox.setContent(location.markerInfo);
+        this.infobox.setContent(this.markerInfo);
         this.infobox.open(this.map, marker);
 
 		// Change the pin icon for active marker
@@ -230,16 +243,15 @@ var viewModel = {
 		// Set the current marker as the map center
         this.map.setCenter(marker.getPosition());
 
-        if (location.nearbyList) {
-            $('.info-detail').append(location.nearbyList);
-        }else{
-            // Getting nearby wiki information and then saving to location.nearbyList
-            // https://www.mediawiki.org/wiki/API:Showing_nearby_wiki_information
-            this.wikiNearby(location);
-        }
     },
 
-    wikiNearby: function(location){
+    wikiNearbyRequest: function(location){
+        var errorMsg = [{activeNearbyListItem: 'Incorrect location coordinates'}];
+        if (!location.lat || !location.lng){
+            return this.activeNearbyList(errorMsg);
+        };
+        this.activeNearbyList([]);
+        var self = this;
         var wikiURL = 'https://en.wikipedia.org/w/api.php';
         $.ajax({
             url: wikiURL,
@@ -253,21 +265,21 @@ var viewModel = {
             },
             type: 'GET',
             dataType: 'jsonp',
-        }).done(function(data){
-            //console.log(data);
-            var i, nearbyList = '';
-            var geosearch = data.query.geosearch;
-            var nearbyLen = geosearch.length;
-            for (i = 0; i < nearbyLen; i++) {
-                nearbyList += '<li>'+ geosearch[i].title + '<span class="dist">' + geosearch[i].dist + 'm</span></li>';
+            // Handle error
+            timeout: 2000,
+            success: function(data){
+                //console.log(data);
+                var i, listStr = '';
+                var geosearch = data.query.geosearch;
+                var nearbyLen = geosearch.length;
+                for (i = 0; i < nearbyLen; i++) {
+                    location.nearbyList.push({activeNearbyListItem: geosearch[i].title + '<span class="dist">' + geosearch[i].dist + 'm</span>'});
+                }
+                self.activeNearbyList(location.nearbyList);
+                self.displayInfobox(self.activeMarker, location);
+            },error: function(){
+                self.activeNearbyList(errorMsg);
             }
-            nearbyList = '<ul class="nearbyList">'+nearbyList+'</ul>';
-            location.nearbyList = nearbyList;
-            $('.info-detail').append(location.nearbyList);
-        }).fail(function(){
-            var err = 'Load wikimedia nearby data failed!';
-            console.log(err);
-            $('.info-detail').append(err);
         });
     }
 };
@@ -278,11 +290,10 @@ viewModel.mappingLocations = function(){
 	var mLoc = Model.locations;
 	for (i = 0; i < mLoc.length; i += 1) {
         mLoc[i].ID = i;
-		//mLoc[i].locationClick = 'javascript:viewModel.locationClick(' + i + ')';
+        mLoc[i].nearbyList = [];
 		locs.push(mLoc[i]);
 	}
 	return locs;
-	//return ko.observableArray(Model.locations);
 };
 
 viewModel.filteredLocations = ko.computed(function() {
@@ -303,8 +314,8 @@ viewModel.filteredLocations = ko.computed(function() {
 			self.infobox.close();
 			// Hide non-corresponding marker
             self.markers[location.ID].setVisible(false);
-        }
-	})
+        };
+	});
 }, viewModel);
 
 viewModel.locationClick = function(filteredLocation) {
@@ -321,19 +332,18 @@ viewModel.listToggle = function() {
         this.toggleText('⇱');
     }else{
         this.toggleText('⇲');
-    }
+    };
+};
 
-}
 
-
-init = function() {
+function init() {
     viewModel.initMap();
-    //viewModel.initMarker();
     viewModel.displayLocations();
-}
+};
 
-mapError = function() {
+function mapError(){
+    this.mapErrInfo('Oops! <br> Error on initialising Google Map');
     console.log('Error on initialising Google Map');
-}
+};
 
 ko.applyBindings(viewModel);

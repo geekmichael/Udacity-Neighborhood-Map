@@ -24,6 +24,17 @@ a:hover{
 }
 .map-container, #map{
     height: 100%;
+    width: 100%;
+}
+#map {
+    display: table;
+}
+.error-msg {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    color: #999;
+    font-size: 4em;
 }
 .docs-footer{
     position:absolute;

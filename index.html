@@ -17,14 +17,30 @@
     <div class="toggle" data-bind="click: listToggle, text: toggleText">&#8689;</div>
 </aside>
 <section class="map-container">
-    <div id="map"></div>
+    <div id="map">
+        <span class="error-msg" data-bind="text: mapErrInfo"></span>
+    </div>
 </section>
 <footer class="docs-footer">
     <p>Neighborhood Map, A front-end project of Udacity Nanodegree. Author: <a href="https://github.com/geekmichael">Michael Zhang</a></p>
 </footer>
-<script src="assets/js/jquery.min.js"></script>
+<div id="infoBox" class="marker-info">
+    <h2 class="location-title" data-bind="text: activeLocationTitle">Campuhan Ridge Walk</h2>
+    <div class="marker-content">
+        <div class="info-img">
+            <img data-bind="attr: {src: activeLocationImg}" src="" class="location-photo">
+        </div>
+        <div class="info-detail">
+            <h3 class="nearby-title">Nearby<span data-bind="visible: nearbyLoadingVisible">Loading ...</span></h3>
+        </div>
+        <ul class="nearbyList" data-bind="foreach: activeNearbyList">
+            <li data-bind="text: activeNearbyListItem"></li>
+        </ul>
+    </div>
+</div>
 <script src="assets/js/knockout-min.js"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?&key=AIzaSyBhi3opCkVZKEnPlhlmi5R2IjZci_t5vMI&callback=init" onerror="mapError"></script>
+<script src="assets/js/jquery.min.js"></script>
 <script src="assets/js/app.js"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?&key=AIzaSyBhi3opCkVZKEnPlhlmi5R2IjZci_t5vMI&callback=init" onerror="mapError()"></script>
 </body>
 </html>
