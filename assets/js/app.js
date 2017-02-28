@@ -1,3 +1,5 @@
+/*jslint for:true, this:true, multivar:true, white:true, browser:true */
+/*global window, $, google, console, ko */
 var Model = {
     // The container to display Google Map
     mapDiv: document.getElementById('map'),
@@ -90,10 +92,7 @@ var viewModel = {
     },
     // Update map centre with new coordinate
     setMapCenter: function (lat, lng) {
-        Model.mapCenter([{
-            lat,
-            lng
-        }]);
+        Model.mapCenter([{ lat, lng }]);
     },
 
     getMapTypeId: function () {
@@ -149,8 +148,8 @@ var viewModel = {
         this.activeLocationImg(location.img);
     },
 
-    updateInfobox: function(marker){
-        var marker = marker || this.activeMarker;
+    updateInfobox: function (marker) {
+        marker = marker || this.activeMarker;
         this.activeMarkerInfo = $('#infoBoxTemplate').html();
         this.infobox.close();
         // Update infoWindow content
@@ -170,7 +169,8 @@ var viewModel = {
 
         // Use for instead of Array.forEach
         // Performance comparison http://jsperf.com/fast-array-foreach
-        for (i = 0; i < locationLen; i++) {
+        // As JSLint suggested to use += instead of ++
+        for (i = 0; i < locationLen; i += 1) {
             location = this.locations()[i];
             latLng = new google.maps.LatLng(location.lat, location.lng);
             this.latLngBounds.extend(latLng);
@@ -185,25 +185,25 @@ var viewModel = {
             this.markers.push(marker);
 
             // Click the marker to show a pop-up window with location information
-            google.maps.event.addListener(marker, 'click', function (marker, location) {
+            google.maps.event.addListener(marker, 'click', (function (marker, location) {
                 return function () {
                     self.displayInfobox(marker, location);
                 };
-            }(marker, location));
+            }(marker, location)));
 
             // Reset marker icon to the default when infoWindow is closed.
-            google.maps.event.addDomListener(this.infobox, 'closeclick', function (latLngBounds, marker, markerIconDefault) {
+            google.maps.event.addDomListener(this.infobox, 'closeclick', (function (latLngBounds, marker, markerIconDefault) {
                 return function () {
                     marker.setIcon(markerIconDefault);
                     map.fitBounds(latLngBounds);
-                }
-            }(this.latLngBounds, marker, this.markerIconDefault));
+                };
+            }(this.latLngBounds, marker, this.markerIconDefault)));
         }
         // Centering and fitting all markers on the screen
         map.fitBounds(this.latLngBounds);
 
         // Reset markers while clicked on the map beside of markers
-        google.maps.event.addListener(this.map, 'click', function (e) {
+        google.maps.event.addListener(this.map, 'click', function () {
             map.fitBounds(self.latLngBounds);
         });
 
@@ -216,7 +216,7 @@ var viewModel = {
     // Set the map on given markers in the array.
     setMapOnAll: function (map, markers) {
         var i;
-        if (!markers) markers = this.markers;
+        markers = markers || this.markers;
         for (i = 0; i < markers.length; i += 1) {
             markers[i].setMap(map);
         }
@@ -252,10 +252,12 @@ var viewModel = {
     },
 
     wikiNearbyRequest: function (location) {
-        var errorMsg = [{activeNearbyListItem: 'Incorrect location coordinates'}];
+        var errorMsg = [{
+            activeNearbyListItem: 'Incorrect location coordinates'
+        }];
         if (!location.lat || !location.lng) {
             return this.activeNearbyList(errorMsg);
-        };
+        }
         this.activeNearbyList([]);
         var self = this;
         var wikiURL = 'https://en.wikipedia.org/w/api.php';
@@ -274,11 +276,10 @@ var viewModel = {
             // Handle error
             timeout: 2000,
             success: function (data) {
-                //console.log(data);
-                var i, listStr = '';
+                var i;
                 var geosearch = data.query.geosearch;
                 var nearbyLen = geosearch.length;
-                for (i = 0; i < nearbyLen; i++) {
+                for (i = 0; i < nearbyLen; i += 1) {
                     location.nearbyList.push({
                         activeNearbyListItem: '<span class="dist">' + geosearch[i].dist + 'm</span>' + geosearch[i].title
                     });
@@ -289,7 +290,9 @@ var viewModel = {
             },
             error: function (parsedjson, textStatus, errorThrown) {
                 console.log('parsedJson status: ' + parsedjson.status, 'errorStatus: ' + textStatus, 'errorThrown: ' + errorThrown);
-                errorMsg = [{activeNearbyListItem: 'Oops! Loading data from Wikimedia failed!'}];
+                errorMsg = [{
+                    activeNearbyListItem: 'Oops! Loading data from Wikimedia failed!'
+                }];
                 self.activeNearbyList(errorMsg);
                 self.nearbyLoadingVisible(false);
                 self.updateInfobox();
@@ -323,12 +326,11 @@ viewModel.filteredLocations = ko.computed(function () {
                 self.markers[location.ID].setVisible(true);
             }
             return location;
-        } else {
-            // Close active infoWindow
-            self.infobox.close();
-            // Hide non-corresponding marker
-            self.markers[location.ID].setVisible(false);
-        };
+        }
+        // Close active infoWindow
+        self.infobox.close();
+        // Hide non-corresponding marker
+        self.markers[location.ID].setVisible(false);
     });
 }, viewModel);
 
@@ -346,18 +348,17 @@ viewModel.listToggle = function () {
         this.toggleText('⇱');
     } else {
         this.toggleText('⇲');
-    };
+    }
 };
-
 
 function init() {
     viewModel.initMap();
     viewModel.displayLocations();
-};
+}
 
 function mapError() {
     this.mapErrInfo('Oops! <br> Error on initialising Google Map');
     console.log('Error on initialising Google Map');
-};
+}
 
 ko.applyBindings(viewModel);
