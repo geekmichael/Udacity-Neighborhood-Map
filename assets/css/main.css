@@ -124,3 +124,6 @@ a:hover{
     font-size: 3em;
     cursor: pointer;
 }
+#infoBoxTemplate {
+  display: none;
+}

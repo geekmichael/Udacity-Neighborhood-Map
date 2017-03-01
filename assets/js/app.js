@@ -90,10 +90,6 @@ var viewModel = {
         var mapCenter = Model.mapCenter();
         return mapCenter[0];
     },
-    // Update map centre with new coordinate
-    setMapCenter: function (lat, lng) {
-        Model.mapCenter([{ lat, lng }]);
-    },
 
     getMapTypeId: function () {
         return Model.mapTypeId;
@@ -213,25 +209,6 @@ var viewModel = {
         });
     },
 
-    // Set the map on given markers in the array.
-    setMapOnAll: function (map, markers) {
-        var i;
-        markers = markers || this.markers;
-        for (i = 0; i < markers.length; i += 1) {
-            markers[i].setMap(map);
-        }
-    },
-
-    // Remove the markers from the map, but keeps them in the array.
-    clearMarkers: function () {
-        this.setMapOnAll(null);
-    },
-
-    // Show all markers in the array
-    showMarkers: function () {
-        this.setMaponAll(this.map);
-    },
-
     displayInfobox: function (marker, location) {
         if (this.activeMarker) {
             // Reset the last activated marker's icon
@@ -274,29 +251,29 @@ var viewModel = {
             type: 'GET',
             dataType: 'jsonp',
             // Handle error
-            timeout: 2000,
-            success: function (data) {
-                var i;
-                var geosearch = data.query.geosearch;
-                var nearbyLen = geosearch.length;
-                for (i = 0; i < nearbyLen; i += 1) {
-                    location.nearbyList.push({
-                        activeNearbyListItem: '<span class="dist">' + geosearch[i].dist + 'm</span>' + geosearch[i].title
-                    });
-                }
-                self.activeNearbyList(location.nearbyList);
-                self.nearbyLoadingVisible(false);
-                self.updateInfobox();
-            },
-            error: function (parsedjson, textStatus, errorThrown) {
-                console.log('parsedJson status: ' + parsedjson.status, 'errorStatus: ' + textStatus, 'errorThrown: ' + errorThrown);
-                errorMsg = [{
-                    activeNearbyListItem: 'Oops! Loading data from Wikimedia failed!'
-                }];
-                self.activeNearbyList(errorMsg);
-                self.nearbyLoadingVisible(false);
-                self.updateInfobox();
+            timeout: 2000
+        })
+        .done(function (data) {
+            var i;
+            var geosearch = data.query.geosearch;
+            var nearbyLen = geosearch.length;
+            for (i = 0; i < nearbyLen; i += 1) {
+                location.nearbyList.push({
+                    activeNearbyListItem: '<span class="dist">' + geosearch[i].dist + 'm</span>' + geosearch[i].title
+                });
             }
+            self.activeNearbyList(location.nearbyList);
+            self.nearbyLoadingVisible(false);
+            self.updateInfobox();
+        })
+        .fail(function (parsedjson, textStatus, errorThrown) {
+            console.log('parsedJson status: ' + parsedjson.status, 'errorStatus: ' + textStatus, 'errorThrown: ' + errorThrown);
+            errorMsg = [{
+                activeNearbyListItem: 'Oops! Loading data from Wikimedia failed!'
+            }];
+            self.activeNearbyList(errorMsg);
+            self.nearbyLoadingVisible(false);
+            self.updateInfobox();
         });
     }
 };
@@ -357,8 +334,7 @@ function init() {
 }
 
 function mapError() {
-    this.mapErrInfo('Oops! <br> Error on initialising Google Map');
-    console.log('Error on initialising Google Map');
+    viewModel.mapErrInfo('Oops! <br> Error on initialising Google Map');
 }
 
 ko.applyBindings(viewModel);
